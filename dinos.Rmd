@@ -1,0 +1,394 @@
+---
+title: "The Effects of Government Policies on Covid-19 in Different Countries"
+author: "Dinos"
+date: "6/24/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+\newpage
+##  
+##  
+![](http://www.myfi.com.tr/uploads/blog/m0FJSkJ3me.jpg)  
+
+
+# Team Members  
+
+## Onur Oruç 090140323  
+
+## Sercan Yıldız 090140334  
+
+
+
+\newpage  
+
+##  
+
+
+
+According to World Health Organization (WHO) a pandemic is the worldwide spread of a new disease. Influenza pandemics are unpredictable but recurring events that can significantly affect wealth, communities and economies worldwide. Planning and preparation are critical to help mitigate the risk and impact of a pandemic, and to manage the response and recovery. Governments take cautions against such pandemics by enforcing some policies. These policies show differences in different countries based on their development, population, and economics. There is an ongoing pandemic caused by Covid-19 which have taken many lives. We will be focusing on this pandemic to understand the nature of how government actions can affect the spread of the disease. Then, we will use this information to prevent deaths. 
+
+One of the datasets we used in our research shows number of infected and deceased people day by day in different countries between 22nd January 2020 and 15th May 2021 but we used 31st December of 2020 to match with our other dataset. The other dataset we used shows the policies different countries have taken in certain dates. 
+
+Link to the first dataset can be found as a csv file from the website: https://ourworldindata.org/policy-responses-covid
+
+Link to the second dataset can be found as a excel file from the website: https://www.acaps.org/covid-19-government-measures-dataset
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(plotly)
+```
+First, we imported the data from the dataset that shows information about the countries and their daily number of cases.
+```{r echo=FALSE}
+data1 = read.csv("data/owid-covid-data.csv")
+names(data1)
+```
+In this dataset there are 59 columns. But we will be needing the columns "location", "date", "new_cases".
+
+```{r echo=FALSE}
+cases = data1 %>%
+  select(location, date, new_cases)
+head(cases)
+```
+Our dataset now has 3 columns we need and 89457 rows of information from 180 countries. 
+
+Then we imported our second dataset that shows the countries and the measures and the dates they were implented.
+```{r echo=FALSE}
+data2 = read_excel("data/acaps_covid19_government_measures_dataset_0.xlsx", sheet = 2)
+names(data2)
+```
+In this dataset there are 18 columns. But we will be needing the columns "COUNTRY", MEASURE", "COMMENTS", and "DATE_IMPLEMENTED".
+
+```{r echo=FALSE}
+measures = data2 %>%
+  select(COUNTRY, DATE_IMPLEMENTED, MEASURE, COMMENTS)
+measures = as.data.frame(measures)
+head(measures)
+```
+Our dataset now has 4 columns we need and 23923 rows of information from 180 countries. 
+
+
+Then, we added countries from each continent. Some of these countries are the most advanced countries with a large population of the continents they are in. Then, we wanted to add the countries that we are familiar with the policies of and successful at slowing down the Coronavirus. After some discussions we had more than one countries from some continents. In the end, we had 11 countries from different continents. These countries in alphabetical order are:
+
+1 - China
+
+2 - Colombia
+
+3 - Israel
+
+4 - Italy
+
+5 - New Zealand
+
+6 - Nigeria
+
+7 - Norway
+
+8 - Russia
+
+9 - Turkey
+
+10 - United States of America
+
+
+
+```{r echo=FALSE}
+cases = cases %>%
+  filter(location == "Brazil" | location == "China" | location == "Colombia" | location == "Israel" | location == "Italy" | location == "New Zealand" | location == "Nigeria" | location == "Norway" | location == "Russia" | location == "Turkey" | location == "United States")
+measures = measures %>%
+  filter(COUNTRY == "Brazil" | COUNTRY == "China" | COUNTRY == "Colombia" | COUNTRY == "Israel" | COUNTRY == "Italy" | COUNTRY == "New Zealand" | COUNTRY == "Nigeria" | COUNTRY == "Norway" | COUNTRY == "Russia" | COUNTRY == "Turkey" | COUNTRY == "United States")
+```
+Since our datasets had different column names for the columns we wanted to merge, we needed to change the column names of the second dataset.
+
+
+```{r echo=FALSE}
+measures = measures %>%
+  rename("location" = 1, "date" = 2)
+measures$date = as.character(measures$date)
+names(measures)
+names(cases)
+```
+
+Now we have the matching names for country names and dates and it is time to merge them. 
+
+```{r echo=FALSE}
+finaldf = merge(cases, measures, by = c("location", "date"), all.x = TRUE)
+finaldf$date = as.Date(finaldf$date)
+finaldf = finaldf %>%
+  filter(date < "2021-01-01")
+finaldf[50:56,]
+```
+As it is seen above, we can now work with location, date, new_cases, MEASURE, and COMMENTS columns all together. 
+```{r include=FALSE}
+Brazil = finaldf %>%
+  filter(location == "Brazil")
+Colombia = finaldf %>%
+  filter(location == "Colombia")
+China = finaldf %>%
+  filter(location == "China")
+Israel = finaldf %>%
+  filter(location == "Israel")
+Italy = finaldf %>%
+  filter(location == "Italy")
+NewZealand = finaldf %>%
+  filter(location == "New Zealand")
+Nigeria = finaldf %>%
+  filter(location == "Nigeria")
+Norway = finaldf %>%
+  filter(location == "Norway")
+Russia = finaldf %>%
+  filter(location == "Russia")
+Turkey = finaldf %>%
+  filter(location == "Turkey")
+USA = finaldf %>%
+  filter(location == "United States")
+```
+
+
+```{r include=FALSE}
+pBrazil = ggplot(Brazil, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "red")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Brazil's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pColombia = ggplot(Colombia, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "lightblue")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+ggtitle("Colombia's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pChina = ggplot(China, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color ="blue")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("China's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pIsrael = ggplot(Israel, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "orange")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Israel's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pItaly = ggplot(Italy, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "purple")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Italy's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pNewZealand = ggplot(NewZealand, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "darkgreen")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("New Zealand's daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pNigeria = ggplot(Nigeria, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "gold")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Nigeria's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pNorway = ggplot(Norway, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "pink")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Norway's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pRussia = ggplot(Russia, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "maroon")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Russia's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pTurkey = ggplot(Turkey, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "cyan")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("Turkey's Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+pUSA = ggplot(USA, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line(color = "royalblue")+
+  xlab("Date")+
+  ylab("Number of Daily Cases")+
+  ggtitle("United States' Daily Corona Cases")+
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r include=FALSE}
+multicountries <- finaldf %>% 
+  filter(location %in% c("Colombia", "China", "Israel", "Italy", "New Zeland", "Nigeria", "Norway", "Russia", "Turkey", "United States"))
+pgeneral = multicountries %>%
+  ggplot(aes(x = date, y = new_cases, color = location)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+    geom_line()+
+  xlab("Date")+
+  ylab("Number of Daily Cases")
+```
+Let's draw map of all countries and their daily number of cases. 
+```{r echo=FALSE}
+ggplotly(pgeneral)
+```
+<center> Figure 1 </center>
+It is an interactive map!! You can hold your mouse on lines to see more information and you can disable countries by clicking on them on the legend!!
+
+
+The first country we will take a look at is Brazil.
+```{r echo=FALSE}
+ggplotly(pBrazil)
+```
+<center> Figure 2 </center>
+First, we wanted to examine Brazil but the number of cases was too unstable. We took a look at their policies anyway to understand what they might have done. But instead of taking any measures against fighting the Coronavirus, Brazilian government opened their borders when they had their peak at the number of Corona cases. Upon further researching, we found out that Brazil is struggling with political crisis. So we can not trust the data we acquire from them. After Brazil, we examined Argentina. But the measures they took also were bad. Argentina and Brazil had similarities in the dates they had peaks and they both opened their borders when they had their peaks. So we moved to another county. And, that's the one we are going to examine in this study.  
+
+
+
+
+Our first example is from South America, a coastal country called Colombia. 
+```{r echo=FALSE}
+ggplotly(pColombia)
+```
+<center> Figure 3 </center>
+Colombia started taking precautions in mid-March mainly in the forms of border closure, school closure, and flight suspension. These precautions were not enough because of Colombia's state of being a heaven for criminal activities. So the government of Colombia couldn't prevent the disease spread even though they have done everything right. In the end of the summer, Colombia had its first peak. Before it had its peak, government suspended international flights and closed borders. After the rapid growth of the number of cases, people must have been scared because they started listening to restrictions more. And this resulted in decrease on the number of cases for a short amount of time. Then Columbia opened their borders and accepted tourists without the need of a test. This was a mistake because it resulted in a larger peak than the last time. This example of Colombia shows us that no matter what government does, number of cases might grow even more. So We can say that apart from government policies, crime level of the country and level of education is really important to prevent the spread of the pandemic. 
+
+
+
+
+Our second example is strangely one of the most successful ones even though they have the biggest population in the world. Yes, you guessed it right, it is China. 
+
+```{r echo=FALSE}
+ggplotly(pChina)
+```
+<center> Figure 4 </center>
+
+China is the first country that Covid-19 has been seen in. From there, Covid-19 spread like a wildfire. But China still managed to keep it low in the country. They took cautions very quickly and unlike Colombia, they were successful to impose them on their people. China quickly closed their schools in early January 2020, started isolation and quarantine programs, closed businesses and public services and enforced partial lockdown. On 27th of January 2020, China restricted domesticaly travelling. In February, they built quick hospitals with great bed capacities so they could keep people diseased with Covid-19 from other people. In early March, China managed to lower their cases so low that in the late March, they were the ones to close their borders to rest of the world. They turned the tides for real. Unlike most of the other countries, China kept their borders closed and that was the reason why they were succesful at not having a second peak. This example shows us that quick reactions and being consistent on their decisions can make a country prevent the disease of Coronavirus. 
+
+
+
+
+Our next country is coming from Middle East. It is the odd one out there, Israel.
+
+```{r echo=FALSE}
+ggplotly(pIsrael)
+```
+<center> Figure 5 </center>
+Israel started taking precautions in the mid-March. They closed their schools in 15th of March 2020 and their borders at 18th of March 2020. These will show their importance later because just a week or two later, in 25th of March 2020, Israel had their peak but numbers immediately after that. And on the date of their peak, they decided on going on a full lockdown. What Israel did and China didn't was that Israel opened their borders in 1st of August. Right after this decision, number of cases rapidly grew. A month later, Israel decided on curfews, school closure, flight suspensions, and full lockdown. But it was too late since the disease was already on the move. On 30th of September, Israel had their biggest peak but thanks to policies they started running, they were able to get out of the dangerous zone easily and go back to low numbers on Corona cases. This example shows us that, cheering too early for the victory can be a country's demise.
+
+
+
+
+
+Our next country is hometown of one of our most beloved foods, pizza. Yes, it is Italy. 
+
+```{r echo=FALSE}
+ggplotly(pItaly)
+```
+<center> Figure 6 </center>
+Italy is one of the countries in Europe that managed the disease poorly. It was only after 1000 cases that they decided on border closure. On 9th of March, Italy started closing their borders, 2 days later, they decided on closure of businesses and public services. 2 more days later, they decided on international flight suspensions. 7 days later they decided on closing more businesses and public services. Only after a day later, they had their peak and number of cases started dropping slowly. 2 days after their peak, they went for full lockdown and 5 more day later, they decided on border checks. Italy thought they did beat the virus but virus were sneakier than they expected. In early May, Italy endede their full lockdown and a month later, they ended the border closure. 3 months later than that, virus showed itself again and number of cases started growing rapidly. And on 13th of November, they had their biggest peak. This example shows us the same results with Israel. 
+
+
+
+
+
+Our new country is from end of the world, it is New Zealand.
+```{r echo=FALSE}
+ggplotly(pNewZealand)
+```
+<center> Figure 7 </center>
+However I called the country "the end of the world", New Zealand was a paradise to live in during this pandemic. Because their numbers never grew high. Their peak was only at 89 cases on the beginning of April. In the beginning of March, New Zealand applied restrictions on visa for Chinese population. On 14th of March 2020, they closed their borders to ships and 5 days later, they went for a full closure. They decided that all people coming to the country had to go in an isolation for 14 days. On 25th of March, they closed schools and 3 weeks later, they decided to continue education online. And on 20th of April, they went on a full lockdown. New Zealand was determined to beat this pandemic and they did it successfully. 
+
+
+
+
+Our next country is coming from Africa. It is Nigeria. 
+
+```{r echo=FALSE}
+ggplotly(pNigeria)
+```
+<center> Figure 8 </center>
+Nigeria took precautions but cases increased anyway. For a country who has 201 million population, peak being less than 1200 is very interesting. Nigeria took the actions that worked for developed countries but it didn't work out for them. Our assumption is that, general public couldn't have a chance to be tested because of economic situation of Nigeria and only rich people could be tested. Even though Nigeria is one of the most developed countries in Africa, it couldn't provide us a safe data. So we can assume that rest of the African countries cannot provide us a safe data. Nonetheless, we wanted to include an African country so we added Nigeria to our list.
+
+
+
+
+Our next country is coming from the land of Vikings, Norway.
+```{r echo=FALSE}
+ggplotly(pNorway)
+```
+<center> Figure 10 </center>
+Corona was quick to spread in Norway. For a country with 5 million population, they reached 3 digits numbers so fast. It was only after they reached 3 digits numbers they decided to close the schools in 12th of March 2020. 3 days later, they decided on closing borders. In 27th of March, they reached their first peak but it was only a week after that they reduced number of cases quickly. In 12th of May, they opened the borders, in 15th of May, they opened schools. And just a couple months after this. Number of Coronavirus cases started growing. Without any strict policies, it was only a matter of time to have another peak which happened in November, 2020. But luckily they started taking cautions against it before the peak. Norwegians started practicing social distancing more carefully 12 days before the peak. And just 8 days before the peak, they decided they would't let anyone in if they didn't tested negative in the last 72 hours. These resulted in decrease in the numbers. 
+
+
+
+
+
+Our new country is famous for their winters and being the largest country. It is Russia.
+```{r echo=FALSE}
+ggplotly(pRussia)
+```
+<center> Figure 11 </center>
+Russia didn't have many cases until the beginning of April. Seeing that Corona is being a serious disaster, Russian government started enforcing curfews on its population. In the beginning of May, they started applying visa restrictions. And just 10 days later, they had their peak and the number of cases started dropping slowly. A day later than the peak, they decided on partial lockdown. After seeing that their number of cases dropping below ten thousand, Russia reopened the country in 30th of May and in the beginning of September, they reopened the schools. After that the numbers started growing rapidly but the only caution Russia took was closing schools in 5th of October. They didn't take on any other actions so the numbers only grew higher and higher. In this example, we see that governments can be neglecting and do a terrible job at containing the disease. 
+
+
+
+
+
+The next country is our home, Turkey.
+
+```{r echo=FALSE}
+ggplotly(pTurkey)
+```
+<center> Figure 12 </center>
+Since it is our own country, it will be hard to be objective about this but as a researcher, we will stay objective. Looking at the data, Turkey didn't have many cases until the end of March. After that, Turkey acted quickly and closed the schools on 16th of March. In 27th of March, they suspended flights and closed the borders. And in the middle of April, they had their peak on the numbers of 5138. But thanks the actions that have been taken, numbers started dropping quickly and by the end of May, number of Corona cases were less than one thousand. Then the numbers increased a little and stayed at between one thousand and three thousand. In June 11th, borders reopened. On 15th of October, schools reopened and quickly after, numbers have grown so quickly that the line was flattened but vertically. In 20th of November, schools were closed again and on 4th of December, they decided on curfews. In Turkey's situation, the dataset is unusual then the others. Such a rapid growth at once did not happen in any other country. It leaves us without a comment. 
+
+
+
+
+
+The next country on the list is the country who did a very bad job in handling Corona that they are an example to the world.
+```{r echo=FALSE}
+ggplotly(pUSA)
+```
+<center> Figure 13 </center>
+
+Until mid-March, USA seemed very safe from Corona. But it was only after March that the unstoppable march of the Corona in the USA we witnessed. In just a month, number of cases grew from two hundreds to thirty thousands. In 13th of March, they closed the schools. In 20th of March, they closed the borders and in 9th of April, they closed borders to ships. But all these did not affect so much. These reduced the number of cases to just below twenty thousand but they were still leading the world in number of cases. And this movement of reduction in cases did not go a long way because in a couple months later, they reached seventy thousands. The growth was crazy and unstoppable. There were some good actions like closing the borders and schools but somehow these were not enough. There were something else wrong in USA that we couldn't find in datasets. By December, they reached to two hundreds thousands. 
+
+
+Governments act as dissuasive to such pandemics by imposing certain policies. Undeveloped countries took similar prohibitions as developed countries, but it has been observed that cases have increased more in underdeveloped countries. For example, political instability in Brazil and Argentina, and poverty in Nigeria were the causes of it. In general, the virus peaked in 2 waves in all countries. The first waves were occurred at different times in countries, the second waves occurred right after summer in most of the countries. Possible reasons for this can be attributed to the conditions brought by the cold season or the mutation of the virus. Closing the borders has led to a significant decrease in all countries, similarly, reopening the borders has also directly affected the increase in the number of cases. For conclusion we can say that the most important policy for the pandemic is the border limitations and underdeveloped countries could not reach the success level that developed countries reached. 
+
+References
+
+https://ourworldindata.org/policy-responses-covid
+
+https://www.acaps.org/covid-19-government-measures-dataset
+
+https://www.who.int
+
