@@ -1,0 +1,209 @@
+---
+title: "FinalReport"
+author: "Dinos"
+date: "6/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+\newpage
+##  
+##  
+![](http://www.myfi.com.tr/uploads/blog/m0FJSkJ3me.jpg)  
+
+
+# Team Members  
+
+## Onur Oruç 090140323  
+
+## Sercan Yıldız 090140334  
+
+
+
+\newpage  
+
+##  
+
+
+
+According to World Health Organization (WHO) a pandemic is the worldwide spread of a new disease. Influenza pandemics are unpredictable but recurring events that can significantly affect wealth, communities and economies worldwide. Planning and preparation are critical to help mitigate the risk and impact of a pandemic, and to manage the response and recovery. Governments take cautions against such pandemics by enforcing some policies. These policies show differences in different countries based on their development, population, and economics. There is an ongoing pandemic caused by Covid-19 which have taken many lives. We will be focusing on this pandemic to understand the nature of how government actions can affect the spread of the disease. Then, we will use this information to prevent deaths. 
+
+One of the datasets we used in our research shows number of infected and deceased people day by day in different countries between 22nd January 2020 and 15th May 2021 but we used 31st December of 2020 to match with our other dataset. The other dataset we used shows the policies different countries have taken in certain dates. 
+
+Link to the first dataset can be found as a csv file from the website: https://ourworldindata.org/policy-responses-covid
+
+Link to the second dataset can be found as a excel file from the website: https://www.acaps.org/covid-19-government-measures-dataset
+
+
+```{r include=FALSE}
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(plotly)
+```
+First, we imported the data from the dataset that shows information about the countries and their daily number of cases.
+```{r echo=FALSE}
+data1 = read.csv("data/owid-covid-data.csv")
+names(data1)
+```
+In this dataset there are 59 columns. But we will be needing the columns "location", "date", "new_cases".
+
+```{r echo=FALSE}
+cases = data1 %>%
+  select(location, date, new_cases)
+head(cases)
+```
+Our dataset now has 3 columns we need and 89457 rows of information from 180 countries. 
+
+Then we imported our second dataset that shows the countries and the measures and the dates they were implented.
+```{r echo=FALSE}
+data2 = read_excel("data/acaps_covid19_government_measures_dataset_0.xlsx", sheet = 2)
+names(data2)
+```
+In this dataset there are 18 columns. But we will be needing the columns "COUNTRY", MEASURE", "COMMENTS", and "DATE_IMPLEMENTED".
+
+```{r echo=FALSE}
+measures = data2 %>%
+  select(COUNTRY, DATE_IMPLEMENTED, MEASURE, COMMENTS)
+measures = as.data.frame(measures)
+head(measures)
+```
+Our dataset now has 4 columns we need and 23923 rows of information from 180 countries. 
+
+
+Then, we added countries from each continent. Some of these countries are the most advanced countries with a large population of the continents they are in. Then, we wanted to add the countries that we are familiar with the policies of and successful at slowing down the Coronavirus. After some discussions we had more than one countries from some continents. In the end, we had 11 countries from different continents. These countries in alphabetical order are:
+
+1 - Brazil
+
+2 - China
+
+3 - Israel
+
+4 - Italy
+
+5 - New Zealand
+
+6 - Nigeria
+
+7 - Norway
+
+8 - Russia
+
+9 - Turkey
+
+10 - United States of America
+
+
+
+```{r echo=FALSE}
+cases = cases %>%
+  filter(location == "Brazil" | location == "China" | location == "Israel" | location == "Italy" | location == "New Zealand" | location == "Nigeria" | location == "Norway" | location == "Russia" | location == "Turkey" | location == "United States")
+measures = measures %>%
+  filter(COUNTRY == "Brazil" | COUNTRY == "China" | COUNTRY == "Israel" | COUNTRY == "Italy" | COUNTRY == "New Zealand" | COUNTRY == "Nigeria" | COUNTRY == "Norway" | COUNTRY == "Russia" | COUNTRY == "Turkey" | COUNTRY == "United States")
+```
+Since our datasets had different column names for the columns we wanted to merge, we needed to change the column names of the second dataset.
+
+
+```{r echo=FALSE}
+measures = measures %>%
+  rename("location" = 1, "date" = 2)
+measures$date = as.character(measures$date)
+names(measures)
+names(cases)
+```
+
+Now we have the matching names for country names and dates and it is time to merge them. 
+
+```{r echo=FALSE}
+finaldf = merge(cases, measures, by = c("location", "date"), all.x = TRUE)
+finaldf$date = as.Date(finaldf$date)
+finaldf = finaldf %>%
+  filter(date < "2021-01-01")
+finaldf[50:56,]
+```
+As it is seen above, we can now work with location, date, new_cases, MEASURE, and COMMENTS columns all together. 
+```{r include=FALSE}
+Brazil = finaldf %>%
+  filter(location == "Brazil")
+China = finaldf %>%
+  filter(location == "China")
+Israel = finaldf %>%
+  filter(location == "Israel")
+Italy = finaldf %>%
+  filter(location == "Italy")
+NewZealand = finaldf %>%
+  filter(location == "New Zealand")
+Nigeria = finaldf %>%
+  filter(location == "Nigeria")
+Norway = finaldf %>%
+  filter(location == "Norway")
+Russia = finaldf %>%
+  filter(location == "Russia")
+Turkey = finaldf %>%
+  filter(location == "Turkey")
+USA = finaldf %>%
+  filter(location == "United States")
+```
+
+
+```{r include=FALSE}
+pBrazil = ggplot(Brazil, aes(x = date, y = new_cases, label = MEASURES)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pChina = ggplot(China, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pIsrael = ggplot(Israel, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pItaly = ggplot(Italy, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pNewZealand = ggplot(NewZealand, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pNigeria = ggplot(Nigeria, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pNorway = ggplot(Norway, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pRussia = ggplot(Russia, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pTurkey = ggplot(Turkey, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+pUSA = ggplot(USA, aes(x = date, y = new_cases, label = MEASURE)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank(), axis.line = element_line(colour = "black"))+
+  geom_line()
+```
+
+
+
+
+```{r}
+ggplotly(pTurkey)
+```
+
+
+
+
+
+
+
+
+
+
